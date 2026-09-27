@@ -1,12 +1,38 @@
 "use client";
 import { useState, useEffect } from "react";
+
 export default function Home(){
-const [interns,setInterns]=useState([]);const [jobs,setJobs]=useState([]);const [ai,setAi]=useState([]);const [aj,setAj]=useState([]);const [tab,setTab]=useState("intern");
-useEffect(()=>{
-fetch("https://raw.githubusercontent.com/shyamk-alt/applyworld-companies/main/companies/internships/eu.json").then(r=>r.json()).then(setInterns).catch(()=>{});
-fetch("https://raw.githubusercontent.com/shyamk-alt/applyworld-companies/main/companies/jobs/eu.json").then(r=>r.json()).then(setJobs).catch(()=>{});
-setAi(JSON.parse(localStorage.getItem("ai")||"[]"));setAj(JSON.parse(localStorage.getItem("aj")||"[]"));
-},[]);
-const apply=(c,t)=>{window.open(c.careers_url,"_blank");if(t==="intern"){const n=[...ai,c.name];setAi(n);localStorage.setItem("ai",JSON.stringify(n))}else{const n=[...aj,c.name];setAj(n);localStorage.setItem("aj",JSON.stringify(n))}};
-const list=tab==="intern"?interns:jobs;const applied=tab==="intern"?ai:aj;
-return(<div style={{padding:16,background:"#000",color:"#fff",minHeight:"100vh",fontFamily:"system-ui"}}><h1>🌍 ApplyWorld - 1 Click EU Apply</h1><div style={{display:"flex",gap:8,margin:"12px 0"}}><div style={{background:"#111",padding:10,borderRadius:10,flex:1,border:"1px solid #0f8"}}>🎓 Intern: {ai.length}/{interns.length}</div><div style={{background:"#111",padding:10,borderRadius:10,flex:1,border:"1px solid #08f"}}>💼 Job: {aj.length}/{jobs.length}</div></div><div style={{display:"flex",gap:8,marginBottom:12}}><button onClick={()=>setTab("intern")} style={{padding:10,borderRadius:8,border:"none",background:tab==="intern"?"#0f8":"#333",fontWeight:"bold"}}>🎓 Internship [{interns.length}]</button><button onClick={()=>setTab("job")} style={{padding:10,borderRadius:8,border:"none",background:tab==="job"?"#08f":"#333",color:"#fff",fontWeight:"bold"}}>💼 Job [{jobs.length}]</button></div>{list.map((c,i)=>(<div key={i} style={{border:"1px solid #222",padding:12,borderRadius:12,marginBottom:8,display:"flex",justifyContent:"space-between"}}><div><b>{c.name}</b> - {c.country}<br/><small>{c.stipend||c.salary} • {c.platform}</small></div><button onClick={()=>apply(c,tab)} style={{background:applied.includes(c.name)?"#222":"#0f8",color:applied.includes(c.name)?"#666":"#000",padding:"8px 12px",borderRadius:8,border:"none"}}>{applied.includes(c.name)?"✓":"Apply"}</button></div>))}</div>)}
+  const [interns,setInterns]=useState([]);
+  const [jobs,setJobs]=useState([]);
+  const [liveJobs,setLiveJobs]=useState([]);
+  const [ai,setAi]=useState([]);
+  const [aj,setAj]=useState([]);
+  const [tab,setTab]=useState("intern");
+  const [search,setSearch]=useState("");
+  const [loading,setLoading]=useState(false);
+
+  useEffect(()=>{
+    fetch("https://raw.githubusercontent.com/shyamk-alt/applyworld-companies/main/companies/internships/eu.json").then(r=>r.json()).then(setInterns).catch(()=>{});
+    fetch("https://raw.githubusercontent.com/shyamk-alt/applyworld-companies/main/companies/jobs/eu.json").then(r=>r.json()).then(setJobs).catch(()=>{});
+    
+    setAi(JSON.parse(localStorage.getItem("ai")||"[]"));
+    setAj(JSON.parse(localStorage.getItem("aj")||"[]"));
+
+    // Fetch LIVE 1M Jobs
+    setLoading(true);
+    fetch(`/api/jobs?query=${search || 'developer jobs'}`)
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.data) setLiveJobs(d.data);
+        setLoading(false);
+      }).catch(()=>setLoading(false));
+  },[]);
+
+  const apply=(c,t)=>{
+    window.open(c.careers_url || c.job_apply_link || c.apply_link,"_blank");
+    if(t==="intern"){
+      const n=[...ai,c.name];setAi(n);localStorage.setItem("ai",JSON.stringify(n))
+    }else{
+      const n=[...aj,c.name];setAj(n);localStorage.setItem("aj",JSON.stringify(n))
+    }
+  };
