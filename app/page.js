@@ -36,3 +36,18 @@ export default function Home(){
       const n=[...aj,c.name];setAj(n);localStorage.setItem("aj",JSON.stringify(n))
     }
   };
+  return (
+    <div style={{padding:20, fontFamily:'sans-serif'}}>
+      <h1>ApplyWorld - {liveJobs.length} Live Jobs 🔥</h1>
+      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search jobs..." style={{padding:12, width:'100%', margin:'15px 0'}}/>
+      {loading && <p>Loading 1M Jobs...</p>}
+      {liveJobs.map((job,i)=>(
+        <div key={i} style={{border:'1px solid #ddd', padding:12, marginBottom:10, borderRadius:8}}>
+          <h3>{job.job_title}</h3>
+          <p>{job.employer_name} - {job.job_city}</p>
+          <button onClick={()=>window.open(job.job_apply_link,'_blank')} style={{background:'black', color:'white', padding:'8px 16px', borderRadius:6}}>Apply</button>
+        </div>
+      ))}
+    </div>
+  );
+}
